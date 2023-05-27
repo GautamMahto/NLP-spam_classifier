@@ -1,10 +1,13 @@
 import pandas as pd
 import numpy as np
+import nltk
+nltk.download('stopwords')
 from nltk.stem.porter import PorterStemmer
 import re
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from sklearn.feature_extraction.text import CountVectorizer,TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import confusion_matrix,accuracy_score
@@ -22,7 +25,7 @@ from wordcloud import WordCloud
 
 
 class NLP:
-    def __init__(self,data) -> None:
+    def __init__(self,data):
         self.data=data
 
     # Stemming Part
@@ -34,6 +37,10 @@ class NLP:
             for i in range(len(self.data)):
                 tweet=re.sub('[^a-zA-Z]'," ",self.data[column_name][i])
                 tweet=re.sub('http',"",tweet)
+                tweet = re.sub('co', "", tweet)
+                tweet = re.sub('amp', "", tweet)
+                tweet = re.sub('new', "", tweet)
+                tweet = re.sub('one', "", tweet)
                 tweet=tweet.lower()
                 tweet=tweet.split()
                 tweet=[stemming.stem(word) for word in tweet if word not in set(stopwords.words('english'))]
@@ -51,22 +58,26 @@ class NLP:
         "Stopwords are being used"
         try:
             corpus=[]
-            stemming=WordNetLemmatizer()
+            lemmatize=WordNetLemmatizer()
 
             for i in range(len(self.data)):
                 tweet=re.sub('[^a-zA-Z]'," ",self.data[column_name][i])
                 tweet=re.sub('http',"",tweet)
+                tweet = re.sub('co', "", tweet)
+                tweet = re.sub('amp', "", tweet)
+                tweet = re.sub('new', "", tweet)
+                tweet = re.sub('one', "", tweet)
                 tweet=tweet.lower()
                 tweet=tweet.split()
-                tweet=[stemming.lemmatize(word) for word in tweet if word not in set(stopwords.words('english'))]
+                tweet=[lemmatize.lemmatize(word) for word in tweet if word not in set(stopwords.words('english'))]
                 tweet=" ".join(tweet)
                 corpus.append(tweet)
 
         except Exception as e:
-            print("Stemming Error",e)
+            print("Lemmatizing Error",e)
 
         else:
-            print("Cleaning was Completed")
+            #print("Cleaning was Completed")
             return corpus
     
     # Count Vectorizer/TFIDF
@@ -100,7 +111,7 @@ class NLP:
         else:
             return y
     
-    def split(self,X,y,test_size=0.2,random_state=12):
+    def split_data(self,X,y,test_size=0.2,random_state=12):
         try:
             X_train,X_test,y_train,y_test=train_test_split(X,y,test_size=test_size,random_state=random_state)
         except Exception as e:
